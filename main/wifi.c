@@ -1,14 +1,9 @@
 #include "wifi.h"
-#include "server.h"
 
 // Design based on Wifi General AP Sceanrio:
 // https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/wifi.html#esp32-wi-fi-station-general-scenario
 
-#define SERVER_PRIORITY 2
-#define SERVER_STACK_SIZE 1024
-
 EventGroupHandle_t event_group;
-TaskHandle_t server_handle;
 
 static void event_debugging(void *event_handler_arg,
                             esp_event_base_t event_base, int32_t event_id,
@@ -28,7 +23,9 @@ static void event_debugging(void *event_handler_arg,
     ESP_LOGI("DHCP", "Received IP from DHCP");
     // Opening relevant TCP_sockets to listen to incoming traffic over here or
     // after WIFI_CONNECTED_BIT is set to 1
-	xTaskCreate(&server_init, "Server Task", SERVER_STACK_SIZE, NULL, SERVER_PRIORITY, &server_handle);
+    // We prefer to open it after calling wifi_init() in app_main function
+    // completes for better readability, as we are already waiting on
+    // WIFI_CONNECTED_BIT event
   }
 }
 
