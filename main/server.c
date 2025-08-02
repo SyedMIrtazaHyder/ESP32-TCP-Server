@@ -10,7 +10,7 @@ static void client_comm(void *pvParameters) {
   int client_id = (*ci)->id;
   struct client_info *current_cli = *ci;
 
-  char buff[128] = "";
+  char buff[BUFF_SIZE] = "";
   ssize_t input_len = 0;
   // Client Communication Logic: All we are doing is listening to what the
   // client has sent and echoing it
@@ -76,8 +76,8 @@ void server_init() {
         sizeof(taskname_prefix) + 1 + sizeof(char) * (int)log10(client->id);
     process_name = (char *)realloc(process_name, process_name_size);
     sprintf(process_name, "%s %d", taskname_prefix, client->id);
-    xTaskCreate(&client_comm, process_name, 2048, (void *)&client, 2,
-                &(client->task_handle));
+    xTaskCreate(&client_comm, process_name, CLIENT_STACK_SIZE, (void *)&client,
+                CLIENT_PRIORITY, &(client->task_handle));
   }
   // code should never run till here
   free(process_name);

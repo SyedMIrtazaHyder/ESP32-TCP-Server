@@ -1,12 +1,18 @@
 #include "wifi.h"
+#include "server.h"
 
 // Design based on Wifi General AP Sceanrio:
 // https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/wifi.html#esp32-wi-fi-station-general-scenario
 
-static EventGroupHandle_t event_group;
+#define SERVER_PRIORITY 2
+#define SERVER_STACK_SIZE 1024
 
-static void event_debugging(void *event_handler_arg, esp_event_base_t event_base,
-                     int32_t event_id, void *event_data) {
+EventGroupHandle_t event_group;
+TaskHandle_t server_handle;
+
+static void event_debugging(void *event_handler_arg,
+                            esp_event_base_t event_base, int32_t event_id,
+                            void *event_data) {
   if (event_base == WIFI_EVENT) {
     if (event_id == WIFI_EVENT_STA_START) {
       // Phase 4
@@ -20,7 +26,9 @@ static void event_debugging(void *event_handler_arg, esp_event_base_t event_base
   } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
     xEventGroupSetBits(event_group, WIFI_CONNECTED_BIT);
     ESP_LOGI("DHCP", "Received IP from DHCP");
-    // Opening relevant TCP_sockets to listen to incoming traffic
+    // Opening relevant TCP_sockets to listen to incoming traffic over here or
+    // after WIFI_CONNECTED_BIT is set to 1
+	xTaskCreate(&server_init, "Server Task", SERVER_STACK_SIZE, NULL, SERVER_PRIORITY, &server_handle);
   }
 }
 
@@ -76,4 +84,3 @@ void wifi_init() {
     ESP_LOGE("WTF",
              "Unexpected Error, both Connected and Disconnected bit are 1!!!");
 }
-

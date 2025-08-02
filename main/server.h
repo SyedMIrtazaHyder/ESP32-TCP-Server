@@ -10,6 +10,9 @@
 #include "lwip/sockets.h"
 
 #define PORT 3000
+#define BUFF_SIZE 128
+#define CLIENT_PRIORITY 3
+#define CLIENT_STACK_SIZE 2048
 
 struct client_info {
   struct sockaddr_in addr;
